@@ -1,6 +1,7 @@
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores.chroma import Chroma
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,6 +23,27 @@ docs = loader.load_and_split(
     text_splitter=text_splitter
 )  # Creates a document class from the unstructured data stored in files
 
-for doc in docs:
-    print(doc.page_content)
+
+"""
+    Create a chroma DB instance and store all the embeddings of chunked data
+    ChromaDB is vector DB, to store word vectors, can be used separately "pip install chromadb"
+    ChromaDB is linked with the SQLite for the storage, can be used separately but
+    Here Chroma DB is being interfaced with the Langchain (as langchain has integrated with many
+    things to make the development process easier)
+"""
+
+db = Chroma.from_documents(
+    docs, embedding=embeddings, persist_directory="emb"
+)  # Calculate embeddings of all the docs and create a chroma DB instance, that will persist it in 'emb' directory
+
+
+# Find the chunk which has highest similarity with the quoted("") text, return k chunks (again using embeddings)
+results = db.similarity_search_with_score(
+    "What is an interesting fact about the english language?", k=1
+)
+
+# Printing the results recieved
+for result in results:
     print("\n")
+    print(result[1])
+    print(result[0].page_content)
