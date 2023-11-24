@@ -39,7 +39,7 @@ db = Chroma.from_documents(
 
 # Find the chunk which has highest similarity with the quoted("") text, return k chunks (again using embeddings)
 results = db.similarity_search_with_score(
-    "What is an interesting fact about the english language?", k=1
+    "What is an interesting fact about the english language?", k=4
 )
 
 # Printing the results recieved
