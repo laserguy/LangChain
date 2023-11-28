@@ -16,3 +16,36 @@
     tool_4.png: Check ./tools/sql.py to see(Adds another layer of abstraction)
 """
 ######################################################################################################
+
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+)
+from langchain.agents import OpenAIFunctionsAgent, AgentExecutor
+from dotenv import load_dotenv
+
+from tools.sql import run_query_tool
+
+load_dotenv()
+
+chat = ChatOpenAI()
+prompt = ChatPromptTemplate(
+    messages=[
+        HumanMessagePromptTemplate.from_template("{input}"),
+        # 'agent_scratchpad' is similar to 'memory', remember ChatGPT cannot remember your conversation and to
+        # use tool with ChatGPT, it's a three step process, so some memory is required: See image 'tool_4.png'
+        # and 'flow.png'
+        MessagesPlaceholder(variable_name="agent_scratchpad"),
+    ]
+)
+
+tools = [run_query_tool]
+
+# Agent is like a 'chain' only difference is that it has the ability to use the 'tools'
+agent = OpenAIFunctionsAgent(llm=chat, prompt=prompt, tools=tools)
+
+agent_executor = AgentExecutor(agent=agent, verbose=True, tools=tools)
+
+agent_executor("How many users are in the database that have shipping address?")
