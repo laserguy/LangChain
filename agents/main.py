@@ -48,4 +48,14 @@ agent = OpenAIFunctionsAgent(llm=chat, prompt=prompt, tools=tools)
 
 agent_executor = AgentExecutor(agent=agent, verbose=True, tools=tools)
 
+"""
+    Following response we get when the agent finished:
+        Invoking: `run_sqilite_query` with `SELECT COUNT(*) FROM users WHERE shipping_address IS NOT NULL`
+
+        The following error occurred: no such column: shipping_addressI'm sorry, but it seems that there is
+        no "shipping_address" column in the users table. Could you please provide the correct column name for
+        the shipping address?
+        
+    Even with our error handing, we were not able to get the correct 'query' from the ChatGPT.
+"""
 agent_executor("How many users are in the database that have shipping address?")
