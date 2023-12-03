@@ -1,4 +1,8 @@
 import sqlite3
+from pydantic.v1 import (
+    BaseModel,
+)  # https://docs.pydantic.dev/latest/ : see why it is used (pass annotations)
+from typing import List
 from langchain.tools import Tool
 
 conn = sqlite3.connect("db.sqlite")
@@ -20,9 +24,32 @@ def run_sqlite_query(query):
         return f"The following error occurred: {str(err)}"
 
 
+#################################################################
+
+"""
+    When debugging the internal code of langchain we found that __arg was being passed instead of the 'query'
+    Langchain breaks this simple code to call the ChatGPT internally that require certain arguments.
+    Check 'tool_3.png' for more information: (video 57), it will show internal working of 'Tool'
+"""
+
+
+class RunQueryArgsSchema(BaseModel):
+    query: str
+
+
+class DescribeTablesArgsSchema(BaseModel):
+    tables_names: List[str]
+
+
+################################################################
+
+
 # But what if the query execution fails, 'run_sqlite_query' handles that as well, check 'tool_5.png' (For tool A)
 run_query_tool = Tool.from_function(
-    name="run_sqilite_query", description="Run a sqlite query.", func=run_sqlite_query
+    name="run_sqilite_query",
+    description="Run a sqlite query.",
+    func=run_sqlite_query,
+    args_schema=RunQueryArgsSchema,
 )
 
 
@@ -47,4 +74,5 @@ describe_tables_tool = Tool.from_function(
     name="describe_tables",
     description="Given a list of table names, returns the schema of those tables",
     func=describe_tables,
+    args_schema=DescribeTablesArgsSchema,
 )
